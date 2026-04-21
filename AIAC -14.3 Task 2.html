@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Landing Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Navigation Bar */
+        nav {
+            background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #FFD700;
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),
+                url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400"><rect fill="%23D2691E" width="1200" height="400"/></svg>');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            text-align: center;
+            padding: 6rem 2rem;
+            animation: fadeIn 1s ease-in;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Menu Section */
+        #menu {
+            padding: 4rem 2rem;
+            background-color: #f9f7f4;
+        }
+
+        #menu h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #8B4513;
+        }
+
+        .menu-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .menu-card h3 {
+            color: #8B4513;
+            margin-bottom: 0.5rem;
+            font-size: 1.5rem;
+        }
+
+        .menu-card p {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+
+        .menu-card .price {
+            color: #FFD700;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        /* Gallery Section */
+        #gallery {
+            padding: 4rem 2rem;
+            background-color: white;
+        }
+
+        #gallery h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #8B4513;
+        }
+
+        .slider-container {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 400px;
+            background-size: cover;
+            background-position: center;
+            animation: zoomIn 0.5s ease;
+        }
+
+        .slider-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            background-color: #8B4513;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #A0522D;
+            transform: scale(1.05);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .dots {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .dot {
+            height: 12px;
+            width: 12px;
+            margin: 0 5px;
+            background-color: #bbb;
+            border-radius: 50%;
+            display: inline-block;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .dot.active {
+            background-color: #8B4513;
+        }
+
+        /* Contact Section */
+        #contact {
+            padding: 4rem 2rem;
+            background-color: #f9f7f4;
+            text-align: center;
+        }
+
+        #contact h2 {
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            color: #8B4513;
+        }
+
+        .contact-info {
+            font-size: 1.1rem;
+            color: #666;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes zoomIn {
+            from {
+                transform: scale(1.1);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#menu">Menu</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <h1>Welcome to Our Restaurant</h1>
+        <p>Experience the finest dining with authentic flavors</p>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu">
+        <h2>Our Menu</h2>
+        <div class="menu-container">
+            <div class="menu-card">
+                <h3>🍝 Pasta Carbonara</h3>
+                <p>Creamy pasta with bacon and parmesan cheese</p>
+                <div class="price">$12.99</div>
+            </div>
+            <div class="menu-card">
+                <h3>🍔 Gourmet Burger</h3>
+                <p>Prime beef patty with fresh toppings and special sauce</p>
+                <div class="price">$14.99</div>
+            </div>
+            <div class="menu-card">
+                <h3>🐟 Grilled Fish</h3>
+                <p>Fresh seasonal fish with lemon butter sauce</p>
+                <div class="price">$16.99</div>
+            </div>
+            <div class="menu-card">
+                <h3>🥗 Garden Salad</h3>
+                <p>Fresh mixed greens with house dressing</p>
+                <div class="price">$8.99</div>
+            </div>
+            <div class="menu-card">
+                <h3>🍰 Chocolate Cake</h3>
+                <p>Decadent chocolate cake with vanilla cream</p>
+                <div class="price">$6.99</div>
+            </div>
+            <div class="menu-card">
+                <h3>☕ Premium Coffee</h3>
+                <p>Freshly brewed specialty coffee</p>
+                <div class="price">$4.99</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery">
+        <h2>Photo Gallery</h2>
+        <div class="slider-container">
+            <div class="slider" id="slider">
+                <div class="slide" style="background: linear-gradient(135deg, #FFD700, #D2691E);"></div>
+                <div class="slide" style="background: linear-gradient(135deg, #8B4513, #A0522D);"></div>
+                <div class="slide" style="background: linear-gradient(135deg, #D2691E, #CD853F);"></div>
+                <div class="slide" style="background: linear-gradient(135deg, #A0522D, #8B4513);"></div>
+            </div>
+        </div>
+        <div class="slider-controls">
+            <button onclick="prevSlide()">← Previous</button>
+            <button onclick="nextSlide()">Next →</button>
+        </div>
+        <div class="dots" id="dots"></div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact">
+        <h2>Contact Us</h2>
+        <div class="contact-info">
+            <p>📍 123 Main Street, Food City</p>
+            <p>📞 (555) 123-4567</p>
+            <p>✉️ info@restaurant.com</p>
+            <p>🕐 Open: Mon-Sun, 10AM - 10PM</p>
+        </div>
+    </section>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+
+        // Initialize dots
+        function initDots() {
+            const dotsContainer = document.getElementById('dots');
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'dot' + (i === 0 ? ' active' : '');
+                dot.onclick = () => goToSlide(i);
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function showSlide(n) {
+            const slider = document.getElementById('slider');
+            slider.style.transform = `translateX(-${n * 100}%)`;
+
+            // Update dots
+            document.querySelectorAll('.dot').forEach((dot, index) => {
+                dot.classList.toggle('active', index === n);
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            showSlide(currentSlide);
+        }
+
+        function goToSlide(n) {
+            currentSlide = n;
+            showSlide(currentSlide);
+        }
+
+        // Auto-advance slides every 5 seconds
+        setInterval(nextSlide, 5000);
+
+        // Initialize
+        initDots();
+    </script>
+</body>
+
+</html>
