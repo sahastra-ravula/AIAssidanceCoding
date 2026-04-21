@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Portfolio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        /* Navigation */
+        nav {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+            padding: 1rem 0;
+            gap: 2rem;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #333;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: #0066cc;
+        }
+
+        /* Sections */
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        #home {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+        }
+
+        #home h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        #about {
+            background: #f4f4f4;
+        }
+
+        /* Projects Grid */
+        #projects {
+            width: 100%;
+        }
+
+        .projects-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .project-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+            background: #f9f9f9;
+        }
+
+        .project-card h3 {
+            color: #0066cc;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Contact Section */
+        #contact {
+            background: #333;
+            color: white;
+            flex-direction: column;
+        }
+
+        #contact h2 {
+            margin-bottom: 2rem;
+        }
+
+        .contact-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .contact-links a {
+            color: #67b26f;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .contact-links a:hover {
+            color: #fff;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            nav ul {
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            #home h1 {
+                font-size: 2rem;
+            }
+
+            .projects-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#projects">Projects</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+
+    <section id="home">
+        <div>
+            <h1>Welcome to My Portfolio</h1>
+            <p>Showcasing my academic projects and technical skills</p>
+        </div>
+    </section>
+
+    <section id="about">
+        <div style="max-width: 800px; text-align: center;">
+            <h2>About Me</h2>
+            <p>I'm a passionate student focused on developing web applications and solving real-world problems through technology.</p>
+        </div>
+    </section>
+
+    <section id="projects">
+        <div style="width: 100%;">
+            <h2 style="text-align: center; margin-bottom: 2rem;">My Projects</h2>
+            <div class="projects-container">
+                <div class="project-card">
+                    <h3>Project 1</h3>
+                    <p>Description of your first project goes here.</p>
+                </div>
+                <div class="project-card">
+                    <h3>Project 2</h3>
+                    <p>Description of your second project goes here.</p>
+                </div>
+                <div class="project-card">
+                    <h3>Project 3</h3>
+                    <p>Description of your third project goes here.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact">
+        <h2>Get In Touch</h2>
+        <div class="contact-links">
+            <a href="mailto:your.email@example.com">Email</a>
+            <a href="https://linkedin.com">LinkedIn</a>
+            <a href="https://github.com">GitHub</a>
+        </div>
+    </section>
+</body>
+</html>
