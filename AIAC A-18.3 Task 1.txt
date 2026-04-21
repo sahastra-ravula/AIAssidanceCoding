@@ -1,0 +1,814 @@
+###public transport fare fetching using transport API, route API, and station validation API with error handling
+import requests
+from typing import Dict, Optional, Tuple
+
+class TransportFareAPI:
+    """Fetch public transport fares using multiple APIs with error handling"""
+    
+    BASE_STATION_API = "https://api.transport.com/stations"
+    BASE_ROUTE_API = "https://api.transport.com/routes"
+    BASE_TRANSPORT_API = "https://api.transport.com/fares"
+    
+    @staticmethod
+    def validate_station(station_code: str) -> bool:
+        """
+        Validate if a station exists using Station Validation API
+        
+        Args:
+            station_code: Station identifier code
+            
+        Returns:
+            bool: True if station is valid, False otherwise
+        """
+        try:
+            response = requests.get(
+                f"{TransportFareAPI.BASE_STATION_API}/{station_code}",
+                timeout=5
+            )
+            return response.status_code == 200
+        except requests.RequestException as e:
+            print(f"Error validating station {station_code}: {str(e)}")
+            return False
+    
+    @staticmethod
+    def get_route(start_station: str, end_station: str) -> Optional[Dict]:
+        """
+        Fetch route information using Route API
+        
+        Args:
+            start_station: Starting station code
+            end_station: Destination station code
+            
+        Returns:
+            dict: Route details or None if not found
+        """
+        try:
+            if not TransportFareAPI.validate_station(start_station):
+                raise ValueError(f"Invalid start station: {start_station}")
+            if not TransportFareAPI.validate_station(end_station):
+                raise ValueError(f"Invalid end station: {end_station}")
+            
+            response = requests.get(
+                f"{TransportFareAPI.BASE_ROUTE_API}",
+                params={"from": start_station, "to": end_station},
+                timeout=5
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching route from {start_station} to {end_station}: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Validation error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def fetch_fare(start_station: str, end_station: str, transport_type: str = "bus") -> Optional[Dict]:
+        """
+        Fetch fare information using Transport API
+        
+        Args:
+            start_station: Starting station code
+            end_station: Destination station code
+            transport_type: Type of transport (bus, metro, train)
+            
+        Returns:
+            dict: Fare details or None if error occurs
+        """
+        try:
+            route = TransportFareAPI.get_route(start_station, end_station)
+            if not route:
+                raise ValueError("Route not found")
+            
+            response = requests.get(
+                f"{TransportFareAPI.BASE_TRANSPORT_API}",
+                params={
+                    "from": start_station,
+                    "to": end_station,
+                    "type": transport_type
+                },
+                timeout=5
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching fare: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def get_fare_details(start_station: str, end_station: str, transport_type: str = "bus") -> Optional[Dict]:
+        """
+        Complete workflow to get transport fare details with full error handling
+        
+        Args:
+            start_station: Starting station code
+            end_station: Destination station code
+            transport_type: Type of transport
+            
+        Returns:
+            dict: Complete fare details with route info or None
+        """
+        try:
+            fare_info = TransportFareAPI.fetch_fare(start_station, end_station, transport_type)
+            if fare_info:
+                route_info = TransportFareAPI.get_route(start_station, end_station)
+                return {
+                    "fare": fare_info,
+                    "route": route_info,
+                    "status": "success"
+                }
+            return None
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return None
+
+
+# Example usage
+if __name__ == "__main__":
+    start = "STN001"
+    end = "STN002"
+    transport = "metro"
+    
+    print("Fetching public transport fare information...")
+    result = TransportFareAPI.get_fare_details(start, end, transport)
+    
+    if result:
+        print(f"Fare Details: {result}")
+    else:
+        print("Failed to fetch fare information")
+
+
+###currency exchange rate fetching using forex API, currency conversion API, and input validation with error handling
+class CurrencyExchangeAPI:
+    """Fetch currency exchange rates using Forex API with input validation and error handling"""
+    
+    BASE_FOREX_API = "https://api.forex.com/rates"
+    BASE_CONVERSION_API = "https://api.forex.com/convert"
+    
+    SUPPORTED_CURRENCIES = {
+        "USD", "EUR", "GBP", "INR", "JPY", "AUD", "CAD", "CHF", "CNY", "SEK"
+    }
+    
+    @staticmethod
+    def validate_currency(currency_code: str) -> bool:
+        """
+        Validate if currency code is supported
+        
+        Args:
+            currency_code: 3-letter currency code (e.g., USD, EUR)
+            
+        Returns:
+            bool: True if currency is valid, False otherwise
+        """
+        if not isinstance(currency_code, str) or len(currency_code) != 3:
+            print(f"Invalid currency format: {currency_code}")
+            return False
+        
+        is_valid = currency_code.upper() in CurrencyExchangeAPI.SUPPORTED_CURRENCIES
+        if not is_valid:
+            print(f"Currency not supported: {currency_code}")
+        return is_valid
+    
+    @staticmethod
+    def get_exchange_rate(from_currency: str, to_currency: str) -> Optional[Dict]:
+        """
+        Fetch exchange rate between two currencies using Forex API
+        
+        Args:
+            from_currency: Source currency code
+            to_currency: Target currency code
+            
+        Returns:
+            dict: Exchange rate details or None if error occurs
+        """
+        try:
+            if not CurrencyExchangeAPI.validate_currency(from_currency):
+                raise ValueError(f"Invalid source currency: {from_currency}")
+            if not CurrencyExchangeAPI.validate_currency(to_currency):
+                raise ValueError(f"Invalid target currency: {to_currency}")
+            
+            response = requests.get(
+                f"{CurrencyExchangeAPI.BASE_FOREX_API}",
+                params={"from": from_currency.upper(), "to": to_currency.upper()},
+                timeout=5
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching exchange rate from {from_currency} to {to_currency}: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Validation error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def convert_currency(amount: float, from_currency: str, to_currency: str) -> Optional[Dict]:
+        """
+        Convert amount from one currency to another using Currency Conversion API
+        
+        Args:
+            amount: Amount to convert
+            from_currency: Source currency code
+            to_currency: Target currency code
+            
+        Returns:
+            dict: Conversion details or None if error occurs
+        """
+        try:
+            if not isinstance(amount, (int, float)) or amount <= 0:
+                raise ValueError(f"Invalid amount: {amount}")
+            if not CurrencyExchangeAPI.validate_currency(from_currency):
+                raise ValueError(f"Invalid source currency: {from_currency}")
+            if not CurrencyExchangeAPI.validate_currency(to_currency):
+                raise ValueError(f"Invalid target currency: {to_currency}")
+            
+            response = requests.get(
+                f"{CurrencyExchangeAPI.BASE_CONVERSION_API}",
+                params={
+                    "amount": amount,
+                    "from": from_currency.upper(),
+                    "to": to_currency.upper()
+                },
+                timeout=5
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error converting currency: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def get_conversion_details(amount: float, from_currency: str, to_currency: str) -> Optional[Dict]:
+        """
+        Complete workflow to get currency conversion details with full error handling
+        
+        Args:
+            amount: Amount to convert
+            from_currency: Source currency code
+            to_currency: Target currency code
+            
+        Returns:
+            dict: Complete conversion details with exchange rate or None
+        """
+        try:
+            conversion_info = CurrencyExchangeAPI.convert_currency(amount, from_currency, to_currency)
+            if conversion_info:
+                rate_info = CurrencyExchangeAPI.get_exchange_rate(from_currency, to_currency)
+                return {
+                    "conversion": conversion_info,
+                    "rate": rate_info,
+                    "status": "success"
+                }
+            return None
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return None
+
+
+# Example usage for currency exchange
+if __name__ == "__main__":
+    # Transport fare example
+    start = "STN001"
+    end = "STN002"
+    transport = "metro"
+    
+    print("Fetching public transport fare information...")
+    result = TransportFareAPI.get_fare_details(start, end, transport)
+    
+    if result:
+        print(f"Fare Details: {result}")
+    else:
+        print("Failed to fetch fare information")
+    
+    print("\n" + "="*50 + "\n")
+    
+    # Currency exchange example
+    amount = 100
+    from_curr = "USD"
+    to_curr = "EUR"
+    
+    print("Fetching currency conversion information...")
+    conversion_result = CurrencyExchangeAPI.get_conversion_details(amount, from_curr, to_curr)
+    
+    if conversion_result:
+        print(f"Conversion Details: {conversion_result}")
+    else:
+        print("Failed to fetch conversion information")
+
+
+###github repository info fetching using GitHub API, REST API requests, and input validation with error handling
+class GitHubRepositoryAPI:
+    """Fetch GitHub repository information using GitHub REST API with input validation and error handling"""
+    
+    BASE_GITHUB_API = "https://api.github.com"
+    TIMEOUT = 10
+    
+    @staticmethod
+    def validate_username(username: str) -> bool:
+        """
+        Validate GitHub username format
+        
+        Args:
+            username: GitHub username
+            
+        Returns:
+            bool: True if username format is valid, False otherwise
+        """
+        if not isinstance(username, str):
+            print(f"Invalid username type: {type(username)}")
+            return False
+        
+        if len(username) < 1 or len(username) > 39:
+            print(f"Username length must be between 1 and 39 characters: {username}")
+            return False
+        
+        if not username.replace("-", "").replace("_", "").isalnum():
+            print(f"Username contains invalid characters: {username}")
+            return False
+        
+        return True
+    
+    @staticmethod
+    def validate_repo_name(repo_name: str) -> bool:
+        """
+        Validate GitHub repository name format
+        
+        Args:
+            repo_name: Repository name
+            
+        Returns:
+            bool: True if repo name format is valid, False otherwise
+        """
+        if not isinstance(repo_name, str) or len(repo_name) < 1:
+            print(f"Invalid repository name: {repo_name}")
+            return False
+        
+        return True
+    
+    @staticmethod
+    def get_user_repos(username: str) -> Optional[Dict]:
+        """
+        Fetch user's repositories using GitHub API
+        
+        Args:
+            username: GitHub username
+            
+        Returns:
+            dict: Repository list or None if error occurs
+        """
+        try:
+            if not GitHubRepositoryAPI.validate_username(username):
+                raise ValueError(f"Invalid username format: {username}")
+            
+            response = requests.get(
+                f"{GitHubRepositoryAPI.BASE_GITHUB_API}/users/{username}/repos",
+                params={"per_page": 30, "sort": "updated"},
+                timeout=GitHubRepositoryAPI.TIMEOUT
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching repositories for user {username}: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Validation error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def get_repo_info(username: str, repo_name: str) -> Optional[Dict]:
+        """
+        Fetch detailed information about a specific repository using GitHub REST API
+        
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+            
+        Returns:
+            dict: Repository details or None if error occurs
+        """
+        try:
+            if not GitHubRepositoryAPI.validate_username(username):
+                raise ValueError(f"Invalid username: {username}")
+            if not GitHubRepositoryAPI.validate_repo_name(repo_name):
+                raise ValueError(f"Invalid repository name: {repo_name}")
+            
+            response = requests.get(
+                f"{GitHubRepositoryAPI.BASE_GITHUB_API}/repos/{username}/{repo_name}",
+                timeout=GitHubRepositoryAPI.TIMEOUT
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching repository {username}/{repo_name}: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Validation error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def get_repo_issues(username: str, repo_name: str, state: str = "open") -> Optional[Dict]:
+        """
+        Fetch issues from a repository using GitHub REST API
+        
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+            state: Issue state (open, closed, all)
+            
+        Returns:
+            dict: Issues list or None if error occurs
+        """
+        try:
+            if not GitHubRepositoryAPI.validate_username(username):
+                raise ValueError(f"Invalid username: {username}")
+            if not GitHubRepositoryAPI.validate_repo_name(repo_name):
+                raise ValueError(f"Invalid repository name: {repo_name}")
+            if state not in ["open", "closed", "all"]:
+                raise ValueError(f"Invalid state: {state}")
+            
+            response = requests.get(
+                f"{GitHubRepositoryAPI.BASE_GITHUB_API}/repos/{username}/{repo_name}/issues",
+                params={"state": state, "per_page": 10},
+                timeout=GitHubRepositoryAPI.TIMEOUT
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            print(f"Error fetching issues for {username}/{repo_name}: {str(e)}")
+            return None
+        except ValueError as e:
+            print(f"Validation error: {str(e)}")
+            return None
+    
+    @staticmethod
+    def get_complete_repo_info(username: str, repo_name: str) -> Optional[Dict]:
+        """
+        Complete workflow to get comprehensive repository information with full error handling
+        
+        Args:
+            username: GitHub username
+            repo_name: Repository name
+            
+        Returns:
+            dict: Complete repository information or None
+        """
+        try:
+            repo_info = GitHubRepositoryAPI.get_repo_info(username, repo_name)
+            if repo_info:
+                issues_info = GitHubRepositoryAPI.get_repo_issues(username, repo_name)
+                return {
+                    "repository": repo_info,
+                    "issues": issues_info,
+                    "status": "success"
+                }
+            return None
+        except Exception as e:
+            print(f"Unexpected error: {str(e)}")
+            return None
+
+
+# GitHub repository info example usage
+if __name__ == "__main__":
+    # GitHub repository example
+    github_user = "torvalds"
+    github_repo = "linux"
+    
+    print("Fetching GitHub repository information...")
+    repo_result = GitHubRepositoryAPI.get_complete_repo_info(github_user, github_repo)
+    
+    if repo_result:
+        print(f"Repository Info: {repo_result}")
+    else:
+        print("Failed to fetch repository information")
+
+
+# #news headlines fetching using news API, category-based filtering, and retry mechanism with error handling
+
+import time
+from typing import List
+
+class NewsAPI:
+    """Fetch news headlines using News API with category-based filtering and retry mechanism"""
+    
+    BASE_NEWS_API = "https://newsapi.org/v2/top-headlines"
+    API_KEY = "your_newsapi_key_here"
+    MAX_RETRIES = 3
+    RETRY_DELAY = 2  # seconds
+    
+    VALID_CATEGORIES = [
+        "business", "entertainment", "general", "health", 
+        "science", "sports", "technology"
+    ]
+    
+    @staticmethod
+    def fetch_with_retry(url: str, params: Dict, max_retries: int = MAX_RETRIES) -> Optional[Dict]:
+        """
+        Fetch data from API with retry mechanism and error handling
+        
+        Args:
+            url: API endpoint URL
+            params: Query parameters
+            max_retries: Maximum number of retry attempts
+            
+        Returns:
+            dict: API response data or None if all retries fail
+        """
+        for attempt in range(max_retries):
+            try:
+                response = requests.get(url, params=params, timeout=5)
+                response.raise_for_status()
+                return response.json()
+            except requests.RequestException as e:
+                print(f"Attempt {attempt + 1}/{max_retries} failed: {str(e)}")
+                if attempt < max_retries - 1:
+                    time.sleep(NewsAPI.RETRY_DELAY)
+                else:
+                    print(f"All retries exhausted for {url}")
+                    return None
+    
+    @staticmethod
+    def get_headlines_by_category(category: str, country: str = "us") -> Optional[List[Dict]]:
+        """
+        Fetch news headlines filtered by category
+        
+        Args:
+            category: News category (business, entertainment, general, health, science, sports, technology)
+            country: Country code (default: us)
+            
+        Returns:
+            list: List of headline articles or None if fetch fails
+        """
+        if category not in NewsAPI.VALID_CATEGORIES:
+            print(f"Invalid category: {category}. Valid categories: {', '.join(NewsAPI.VALID_CATEGORIES)}")
+            return None
+        
+        try:
+            params = {
+                "category": category,
+                "country": country,
+                "apiKey": NewsAPI.API_KEY
+            }
+            data = NewsAPI.fetch_with_retry(NewsAPI.BASE_NEWS_API, params)
+            
+            if data and data.get("status") == "ok":
+                return data.get("articles", [])
+            else:
+                error_msg = data.get("message", "Unknown error") if data else "No response"
+                print(f"Error fetching headlines: {error_msg}")
+                return None
+        except Exception as e:
+            print(f"Unexpected error fetching headlines: {str(e)}")
+            return None
+    
+    @staticmethod
+    def get_headlines_by_search(query: str, language: str = "en") -> Optional[List[Dict]]:
+        """
+        Fetch news headlines based on search query
+        
+        Args:
+            query: Search keyword or phrase
+            language: Language code (default: en)
+            
+        Returns:
+            list: List of matching articles or None if fetch fails
+        """
+        try:
+            params = {
+                "q": query,
+                "language": language,
+                "sortBy": "publishedAt",
+                "apiKey": NewsAPI.API_KEY
+            }
+            data = NewsAPI.fetch_with_retry("https://newsapi.org/v2/everything", params)
+            
+            if data and data.get("status") == "ok":
+                return data.get("articles", [])
+            else:
+                error_msg = data.get("message", "Unknown error") if data else "No response"
+                print(f"Error searching headlines: {error_msg}")
+                return None
+        except Exception as e:
+            print(f"Unexpected error searching headlines: {str(e)}")
+            return None
+    
+    @staticmethod
+    def filter_headlines(articles: List[Dict], min_sources: int = 1) -> List[Dict]:
+        """
+        Filter and process headlines with additional criteria
+        
+        Args:
+            articles: List of article objects
+            min_sources: Minimum article quality threshold
+            
+        Returns:
+            list: Filtered list of articles
+        """
+        if not articles:
+            return []
+        
+        filtered = []
+        for article in articles:
+            if article.get("title") and article.get("description"):
+                filtered.append({
+                    "title": article["title"],
+                    "description": article["description"],
+                    "source": article.get("source", {}).get("name", "Unknown"),
+                    "url": article.get("url"),
+                    "published_at": article.get("publishedAt")
+                })
+        return filtered
+
+
+# News API example usage
+if __name__ == "__main__":
+    # Fetch technology news with retry mechanism
+    print("Fetching technology headlines...")
+    tech_headlines = NewsAPI.get_headlines_by_category("technology")
+    
+    if tech_headlines:
+        filtered_tech = NewsAPI.filter_headlines(tech_headlines)
+        print(f"Found {len(filtered_tech)} technology articles")
+        for article in filtered_tech[:3]:
+            print(f"\nTitle: {article['title']}")
+            print(f"Source: {article['source']}")
+    else:
+        print("Failed to fetch technology headlines")
+    
+    # Fetch headlines by search query
+    print("\n\nSearching for AI news...")
+    ai_articles = NewsAPI.get_headlines_by_search("artificial intelligence")
+    
+    if ai_articles:
+        filtered_ai = NewsAPI.filter_headlines(ai_articles)
+        print(f"Found {len(filtered_ai)} AI articles")
+        for article in filtered_ai[:2]:
+            print(f"\nTitle: {article['title']}")
+            print(f"Source: {article['source']}")
+    else:
+        print("Failed to search for AI articles")
+
+
+##covid-19 statistics fetching using public health API, country-based query, and rate-limit retry handling with error management.
+
+import time
+
+class COVID19StatsAPI:
+    """Fetch COVID-19 statistics using public health API with rate-limit retry handling"""
+    
+    BASE_COVID_API = "https://api.disease.sh/v3/covid-19"
+    MAX_RETRIES = 3
+    RETRY_DELAY = 2  # seconds
+    
+    @staticmethod
+    def validate_country(country_name: str) -> bool:
+        """
+        Validate if country name is valid
+        
+        Args:
+            country_name: Name of the country
+            
+        Returns:
+            bool: True if country is valid, False otherwise
+        """
+        if not isinstance(country_name, str) or len(country_name.strip()) == 0:
+            print(f"Invalid country name: {country_name}")
+            return False
+        return True
+    
+    @staticmethod
+    def get_country_stats(country_name: str) -> Optional[Dict]:
+        """
+        Fetch COVID-19 statistics for a specific country with retry handling
+        
+        Args:
+            country_name: Name of the country
+            
+        Returns:
+            dict: COVID-19 statistics or None if error occurs
+        """
+        if not COVID19StatsAPI.validate_country(country_name):
+            return None
+        
+        for attempt in range(COVID19StatsAPI.MAX_RETRIES):
+            try:
+                response = requests.get(
+                    f"{COVID19StatsAPI.BASE_COVID_API}/countries/{country_name.lower()}",
+                    timeout=5
+                )
+                
+                if response.status_code == 429:  # Rate limit exceeded
+                    if attempt < COVID19StatsAPI.MAX_RETRIES - 1:
+                        print(f"Rate limit hit, retrying in {COVID19StatsAPI.RETRY_DELAY} seconds...")
+                        time.sleep(COVID19StatsAPI.RETRY_DELAY)
+                        continue
+                    else:
+                        print("Max retries exceeded due to rate limiting")
+                        return None
+                
+                response.raise_for_status()
+                data = response.json()
+                return {
+                    "country": data.get("country"),
+                    "cases": data.get("cases"),
+                    "deaths": data.get("deaths"),
+                    "recovered": data.get("recovered"),
+                    "active": data.get("active"),
+                    "cases_per_million": data.get("casesPerOneMillion"),
+                    "updated": data.get("updated")
+                }
+            
+            except requests.exceptions.HTTPError as e:
+                if e.response.status_code == 404:
+                    print(f"Country not found: {country_name}")
+                    return None
+                elif attempt < COVID19StatsAPI.MAX_RETRIES - 1:
+                    print(f"Server error, retrying in {COVID19StatsAPI.RETRY_DELAY} seconds...")
+                    time.sleep(COVID19StatsAPI.RETRY_DELAY)
+                else:
+                    print(f"Failed to fetch COVID-19 stats for {country_name}: {str(e)}")
+                    return None
+            
+            except requests.RequestException as e:
+                print(f"Error fetching COVID-19 stats for {country_name}: {str(e)}")
+                return None
+        
+        return None
+    
+    @staticmethod
+    def get_global_stats() -> Optional[Dict]:
+        """
+        Fetch global COVID-19 statistics with retry handling
+        
+        Returns:
+            dict: Global COVID-19 statistics or None if error occurs
+        """
+        for attempt in range(COVID19StatsAPI.MAX_RETRIES):
+            try:
+                response = requests.get(
+                    f"{COVID19StatsAPI.BASE_COVID_API}/all",
+                    timeout=5
+                )
+                
+                if response.status_code == 429:  # Rate limit exceeded
+                    if attempt < COVID19StatsAPI.MAX_RETRIES - 1:
+                        print(f"Rate limit hit, retrying in {COVID19StatsAPI.RETRY_DELAY} seconds...")
+                        time.sleep(COVID19StatsAPI.RETRY_DELAY)
+                        continue
+                    else:
+                        print("Max retries exceeded due to rate limiting")
+                        return None
+                
+                response.raise_for_status()
+                data = response.json()
+                return {
+                    "cases": data.get("cases"),
+                    "deaths": data.get("deaths"),
+                    "recovered": data.get("recovered"),
+                    "updated": data.get("updated")
+                }
+            
+            except requests.RequestException as e:
+                if attempt < COVID19StatsAPI.MAX_RETRIES - 1:
+                    print(f"Error fetching global stats, retrying in {COVID19StatsAPI.RETRY_DELAY} seconds...")
+                    time.sleep(COVID19StatsAPI.RETRY_DELAY)
+                else:
+                    print(f"Failed to fetch global COVID-19 stats: {str(e)}")
+                    return None
+        
+        return None
+
+
+# COVID-19 API example usage
+if __name__ == "__main__":
+    # Fetch global COVID-19 statistics
+    print("Fetching global COVID-19 statistics...")
+    global_stats = COVID19StatsAPI.get_global_stats()
+    
+    if global_stats:
+        print(f"Global Cases: {global_stats['cases']}")
+        print(f"Global Deaths: {global_stats['deaths']}")
+        print(f"Global Recovered: {global_stats['recovered']}")
+    else:
+        print("Failed to fetch global statistics")
+    
+    # Fetch country-specific COVID-19 statistics
+    print("\n\nFetching COVID-19 statistics by country...")
+    countries = ["India", "United States", "United Kingdom"]
+    
+    for country in countries:
+        print(f"\n{country}:")
+        country_stats = COVID19StatsAPI.get_country_stats(country)
+        
+        if country_stats:
+            print(f"  Cases: {country_stats['cases']}")
+            print(f"  Deaths: {country_stats['deaths']}")
+            print(f"  Recovered: {country_stats['recovered']}")
+            print(f"  Active: {country_stats['active']}")
+        else:
+            print(f"  Failed to fetch statistics for {country}")
